@@ -1,0 +1,41 @@
+services:
+  php-apache:
+    build: ./docker/php-apache/
+    volumes:
+      - .:/var/www/html
+    environment:
+      VIRTUAL_HOST: "myapp.local.localhost"
+      CERT_NAME: "_wildcard.local.localhost"
+      HTTPS_METHOD: "noredirect"
+    networks:
+      - myapp-network
+      - local-network
+  mysql:
+    build: ./docker/mysql/
+    volumes:
+      - ./var/mysql:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: "password"
+    ## MysqlWorkbench等のクライアントツールからつなげたい時だけ以下を有効にする
+    # ports:
+    #   - 3316:3306
+    networks:
+      - myapp-network
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    environment:
+      VIRTUAL_HOST: "myapp-db.local.localhost"
+      CERT_NAME: "_wildcard.local.localhost"
+      PMA_HOST: 'mysql'
+      PMA_USER: 'root'
+      PMA_PASSWORD: 'password'
+    networks:
+      - myapp-network
+      - local-network
+networks:
+  myapp-network:
+    name: myapp-network
+  local-network:
+    external: true
+    name: local-network
