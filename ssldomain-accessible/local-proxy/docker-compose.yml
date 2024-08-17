@@ -1,0 +1,29 @@
+services:
+  nginx-proxy:
+    container_name: local-proxy
+    image: jwilder/nginx-proxy
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      DEFAULT_HOST: "default.local.localhost"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./conf/my-default.conf:/etc/nginx/conf.d/my-default.conf
+    networks:
+      - local-network
+  default-site:
+    container_name: default-site
+    image: httpd
+    environment:
+      VIRTUAL_HOST: "default.local.localhost"
+      CERT_NAME: "_wildcard.local.localhost"
+      HTTPS_METHOD: "noredirect"
+    volumes:
+      - ./htdocs:/usr/local/apache2/htdocs
+    networks:
+      - local-network
+networks:
+  local-network:
+    name: local-network
